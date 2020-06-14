@@ -7,6 +7,6 @@
 * 采用多线程异步日志来记录服务器运行状态
 
 ## 框架
-多线程服务器模型使用non-blocking IO + one loop per thread模型，也就是每个IO线程有一个event loop（或称Reactor）来处理读写和定时事件。
+多线程服务器模型使用non-blocking IO + one loop per thread模型，也就是每个IO线程有一个event loop（或称Reactor）来处理读写和定时事件。  
 其中有一个MainReactor负责响应客户端请求，建立连接，并使用Round Robin的方式将连接分配给SubReactor。同时使用eventfd来进行异步唤醒阻塞的SubReactor来处理活跃事件。
 
