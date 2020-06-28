@@ -3,6 +3,7 @@
 #pragma once
 #include "EventLoop.h"
 #include <fuctional>
+#include <sys/epool/h>
 
 namespace easyserver{
 
@@ -27,14 +28,18 @@ class Channel: noncopyable{
     int events const { return events_; }
     void set_revents(int revt) { revents_ = revt;}
 
+    bool isNoneEvent() const { return events_ == kNoneEvent; }
+
     void enableReading() { events_ |= kReadEvent; update();}
     void enableWriting() { events_ |= kWriteEvent; update();}
-    void disableWriting() { events_ &= ~kWriteEvent; update(); }
-    void disableAll() { events_ = kNoneEvent; update(); }
+
+    void disableReading() { events_ &= ~kReadEvent; update();}
+    void disableWriting() { events_ &= ~kWriteEvent; update();}
+    void disableAll() { events_ = kNoneEvent; update();}
 
     int index() { return index_; }
     void set_index(int idx) { index_ = idx; }
-    
+
   private:
     void update();
 
@@ -42,11 +47,11 @@ class Channel: noncopyable{
     static const int kReadEvent;
     static const int kWriteEvent;
 
-    EventLoop*	loop_;
-    const int	fd_;
-    int		events_;
-    int		revents_;
-    int		index_;
+    EventLoop*  loop_;
+    const int   fd_;
+    int         events_;
+    int         revents_;
+    int         index_;
 
     EventCallback readCallback_;
     EventCallback writeCallback_;

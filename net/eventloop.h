@@ -1,4 +1,6 @@
 //@Author Yuz
+#ifndef EASYWEBSERVER_H
+#define EASYWEBSERVER_H
 
 #pragma once
 #include <vector>
@@ -6,7 +8,13 @@
 #include <atomic>
 #include "easeyserver/base/CurrentThread.h"
 
-namespace net{
+namespace easyserver
+{
+namespace net
+{
+
+class Channel;
+class Epoller;
 
 class EventLoop:nocopyable{
   public:
@@ -25,12 +33,22 @@ class EventLoop:nocopyable{
     const pid_t threadId_;
     std::atomic<bool> quit_;
     bool looping_;
+    bool eventHandling_;
+
+    std::unique_ptr<Epoll> Epoller_;
 
     typedef std::vector<Channel*> ChannelList;
 
     void handleRead();
 
+    int iteration_;
     ChannelList activeChannels_;
     Channel* currentActiveChannel_;
+
+    int wakeupFd_;
+    std::unique_ptr<Channel> wakeupChannel_;
 }
 }
+}
+
+#endif // EASYWEBSERVER_H

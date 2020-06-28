@@ -3,6 +3,7 @@
 #include "eventloop.h"
 #include "Channel.h"
 #include "EPoll.h"
+#include "EasyWebServer/base/CurrentThread.h"
 
 #include <algorithm>
 
@@ -31,4 +32,65 @@ int createEventfd()
 }
 }
 
-EventLoop::EventLoop(): looping_(false)
+EventLoop::EventLoop():
+            looping_(false),
+	    	quit_(true),
+	    	threadID_(CurrentThread::ID()){},
+            wakeupFd(createEventfd*()),
+            wakeupChannel_(new Channel(this,wakeupFd_)),
+            currentActiveChannel_(NULL),
+            eventHandling_(false),
+            iteration_(0)
+{
+    //log eventloop created;
+    if(t_loopInthisThread)
+    {
+        //log eventloop existed;
+    }
+    else
+    {
+        t_loopInthisThread = this;
+    }
+    wakeupChannel_->setReadCallback(std::bind(&Eventloop::handleRead(),this));
+    wakeupChannel_->enableReading();
+}
+
+EventLoop::~EventLoop()
+{
+    //log destructs;
+    //wakeupChannel_->disableAll();
+    //wakeupChannel_->remove();
+    ::close(wakeupFd_);
+    t_loopInthisThread = NULL;
+}
+
+void EventLoop::loop()
+{
+    assert(!looping_);
+    assertInLoopThread();
+    looping_ = true;
+    quit_ = false;
+    //log start looping
+
+    while(!quit){
+        activeChannels_.clear();
+        ++iteration_;
+        eventHandling_ = true;
+        Epoller_->poll(kPollTimeMs, &activeChannels_);
+        for(Channel* channel : activechannels_)
+        {
+            currentActiveChannel_ = channel;
+            currentActiveChannel_->handleEvent();
+        }
+        currentActiveChannel_ = NULL;
+        eventHandling_ = false;
+        //dopendingfunctors;
+    }
+
+    looping_ = false;
+}
+
+void EventLoop::updateChannel(Channel* channel)
+{
+    Epoller_->updateChannel(channel);
+}
