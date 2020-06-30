@@ -94,3 +94,31 @@ void EventLoop::updateChannel(Channel* channel)
 {
     Epoller_->updateChannel(channel);
 }
+
+void EventLoop::wakeup()
+{
+    uint64_t one = 1;
+    ssize_t n = writen(wakeupFd_, (char*)(&one), sizeof(one));
+    if(n != sizeof(one))
+    {
+        //log
+    }
+}
+
+void EventLoop::runInLoop(Functor&& cb)
+{
+    if(isInLoopThread)
+        cb();
+    else
+        queueInLoop(std::move(cb));
+}
+
+void EventLoop::queueInLoop(Functor&& cb)
+{
+    {
+        MutexLockGuard lock(mutex_);
+        pendingFunctors_emplace_back(std::move(cb));
+    }
+
+    if( !isInLoopThread() || callingpendingFunctors_) wakeup();
+}

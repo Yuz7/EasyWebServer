@@ -1,15 +1,10 @@
 //@Author Yuz
-#ifndef EASYWEBSERVER_H
-#define EASYWEBSERVER_H
-
 #pragma once
 #include <vector>
 #include <functional>
 #include <atomic>
 #include "easeyserver/base/CurrentThread.h"
 
-namespace easyserver
-{
 namespace net
 {
 
@@ -29,11 +24,15 @@ class EventLoop:nocopyable{
     bool isInLoopThread() const { return threadId_ == CurrentThred::tid();}
     void assertInLoopThread() { assert(isInLoopThread())};
 
+    void runInLoop(Functor&& cb);
+    void queueInLoop(Functor&& cb);
+
   private:
     const pid_t threadId_;
     std::atomic<bool> quit_;
     bool looping_;
     bool eventHandling_;
+    mutable MutexLock mutex_;
 
     std::unique_ptr<Epoll> Epoller_;
 
@@ -44,11 +43,13 @@ class EventLoop:nocopyable{
     int iteration_;
     ChannelList activeChannels_;
     Channel* currentActiveChannel_;
+    std::vector<Functor> pendingFunctors_;
 
+    bool callingPendingFunctors_;
     int wakeupFd_;
     std::unique_ptr<Channel> wakeupChannel_;
-}
+
+    void wakeup();
 }
 }
 
-#endif // EASYWEBSERVER_H

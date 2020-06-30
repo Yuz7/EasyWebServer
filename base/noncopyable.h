@@ -1,5 +1,5 @@
-#ifndef BASE_NONCOPYABLE_H
-#define BASE_NONCOPYABLE_H
+// @Author Yuz
+#pragma once
 
 namespace easyserver
 {
@@ -13,8 +13,6 @@ class noncopyable
   protected:
     noncopyable() = default;
     ~noncopyable() = default;
-}
+};
 
 }
-
-#endif

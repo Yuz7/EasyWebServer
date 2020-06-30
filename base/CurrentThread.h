@@ -1,11 +1,9 @@
 //@Author Yuz
-
 #pragma once
 #include <stdint.h>
 
-namespace easyserver{
-
 namespace CurrentThread{
+
 extern __thread int t_cachedTid;
 extern __thread char t_tidString[32];
 extern __thread int t_tidStringLength;
@@ -29,5 +27,5 @@ inline int tidStringLength()
 }
 
 inline const char* name() { return t_threadName; }
-}
+
 }
