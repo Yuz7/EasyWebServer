@@ -9,7 +9,7 @@ EventLoopThreadPool::EventLoopThreadPool(EventLoop* baseLoop, int numThreads):
     next_(0)
 {
     assert(numThreads_ >= 0);
-
+}
 void EventLoopThreadPool::start()
 {
     assert(!started_);

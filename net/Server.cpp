@@ -6,6 +6,7 @@
 #include <functional>
 #include <arpa/inet.h>
 #include <assert.h>
+#include "TcpConn.h"
 
 Server::Server(EventLoop *loop, int threadNum, int port):
         loop_(loop),
@@ -48,9 +49,10 @@ void Server::handleRead()
             return;
         }
 
-       // setNodelay(acceptfd);
+        setNodelay(acceptfd);
 
-
+        std::shared_ptr<TcpConn> TcpConnPtr(new TcpConn(ioloop, accept_fd));
+        ioloop->runInLoop(std::bind(&TcpConn::ConnEstablish,TcpConnPtr))
     }
     acceptor_->enableReading();
 }

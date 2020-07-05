@@ -19,6 +19,20 @@ int setNonBlocking(int fd)
     return 0;
 }
 
+void setSocketNodelay(int fd)
+{
+    int enable = 1;
+    setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (VOID *)&enable, sizeof(enable));
+}
+
+void setSocketNoLinger(int fd)
+{
+    struct linger linger_;
+    linger_.l_onoff = 1;
+    linger_.l_linger = 30;
+    setsockopt(fd, SOL_SOCKET, SO_LINGER, (const char *)&linger_, sizeof(linger_));
+}
+
 int socket_bind_listen(int port)
 {
     if(port < 0 || port > 65535) return -1;

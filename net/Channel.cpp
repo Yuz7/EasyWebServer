@@ -4,10 +4,10 @@
 #include "Channel.h"
 #include "eventloop.h"
 
-namespace easyserver{
+
 namespace net{
 const int Channel::kNoneEvent = 0;
-const int Channel::kReadEvent = EPOLLIN | EPOLLPRI | EPOLLET;
+const int Channel::kReadEvent = EPOLLIN |  EPOLLET;
 const int Channel::kWriteEvent = EPOLLOUT;
 
 Channel::Channel(EventLoop* loop, int fd__):
@@ -31,7 +31,7 @@ Channel::~Channel()
 
 void Channel::update()
 {
-    loop_->updateChannel(thie);
+    loop_->updateChannel(this);
 }
 
 void Channel::remove()
@@ -63,8 +63,7 @@ void Channel::handleEvent()
         writeCallback();
     }
 }
-
 }
 
 
-}
+
