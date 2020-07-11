@@ -17,3 +17,10 @@
 
 ## 测试 //TODO
 
+### 主要学习参考
+* Linux多线程服务端编程 陈硕著
+* https://github.com/libevent/libevent
+* Linux高性能服务器编程 游双著
+* https://github.com/linyacool/WebServer
+* unp卷一
+
