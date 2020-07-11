@@ -57,7 +57,12 @@ class TcpConn
         TcpConn(EventLoop*loop,int fd);
         ~TcpConn();
 
+        void reset();
+        void seperateTimer();
+        void linkTimer(std::shared_ptr<TimerNode> ctimer) { timer_ = ctimer; }
+
         void connEstabilsh();
+        void handleClose();
 
     private:
         EventLoop* loop_;
@@ -74,6 +79,8 @@ class TcpConn
         std::string fileName_;
         std::string path_;
         int nowReadPos_;
+        std::map<std::string, std::string> headers_;
+        std::weak_ptr<TimerNode> timer_;
 
         void setState(ConnState connState) { connState_ = connState; }
 

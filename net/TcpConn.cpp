@@ -2,7 +2,14 @@
 #include "TcpConn.h"
 #include "Channel.h"
 #include "EventLoop.h"
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <fcntl.h>
+#include <iostream>
+#include "Socket.h"
+#include "time.h"
+
+const int DEFAULT_EXPIRED_TIME = 2000;
 
 TcpConn::TcpConn(EventLoop *loop, int fd):
     loop_(loop),
@@ -29,7 +36,13 @@ void TcpConn::ConnEstablish()
 
     channel_->enableReading();
 }
+/*
+void TcpConn::handleClose() {
+    connectionState_ = kDisConnected;
+    shared_ptr<TcpConn> guard(shared_from_this());
 
+}
+*/
 void TcpConn::reset(){
     fileName_.clear();
     path_.clear();
@@ -37,6 +50,14 @@ void TcpConn::reset(){
     procstate_ = STATE_PARSE_URI;
     parsestate_ = H_START;
     headers_.clear();
+}
+
+void TcpConn::seperateTimer() {
+    if(timer.lock) {
+        shared_ptr<TimerNode> crtimer(timer_.lock());
+        crtimer->clearReq();
+        timer_.reset();
+    }
 }
 
 void TcpConn::handleRead()
