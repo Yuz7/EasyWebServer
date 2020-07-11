@@ -9,11 +9,11 @@
 ## 框架
 多线程服务器模型使用non-blocking IO + one loop per thread模型，也就是每个IO线程有一个event loop（或称Reactor）来处理读写和定时事件。  
 其中有一个MainReactor负责响应客户端请求，建立连接，并使用Round Robin的方式将连接分配给SubReactor。同时使用eventfd来进行异步唤醒阻塞的SubReactor来处理活跃事件。
-![并发模型](https://github.com/Yuz7/EasyWebServer/blob/master/pic/buffer.webp)
+![并发模型](https://github.com/Yuz7/EasyWebServer/blob/master/pic/model.png)
 
 ## Buffer //TODO
 缓冲区计划将用一个缓冲链表来管理内存，链表通过一个evbuffer管理，以此来实现zero copy。
-![evbuffer](https://github.com/Yuz7/EasyWebServer/blob/master/pic/model.png)
+![evbuffer](https://github.com/Yuz7/EasyWebServer/blob/master/pic/buffer.webp)
 
 ## 测试
 
