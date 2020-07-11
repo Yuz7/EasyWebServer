@@ -2,7 +2,7 @@
 通过学习muduo网络库，实现自己的Linux下c++轻量高性能Web服务器，计划实现：
 * 使用epoll(ET)+non-blocking IO+one loop per thread并发模型 √
 * 缓冲区初步仅使用string(后续将改为内存池链表) √
-* 使用有限状态机来解析Http请求，支持解析get和post请求 √
+* 使用有限状态机来解析Http请求，支持解析get和post请求，仅支持短链接 √
 * 定时器基于小根堆，用其处理超时请求与非活动链接 √
 * 采用多线程异步日志来记录服务器运行状态
 
