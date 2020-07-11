@@ -4,7 +4,7 @@
 * 缓冲区初步仅使用string(后续将改为内存池链表) √
 * 使用有限状态机来解析Http请求，支持解析get和post请求，仅支持短链接 √
 * 定时器基于小根堆，用其处理超时请求与非活动链接 √
-* 采用多线程异步日志来记录服务器运行状态
+* 采用多线程异步日志来记录服务器运行状态 // TODO
 
 ## 框架
 多线程服务器模型使用non-blocking IO + one loop per thread模型，也就是每个IO线程有一个event loop（或称Reactor）来处理读写和定时事件。  
@@ -15,5 +15,5 @@
 缓冲区计划将用一个缓冲链表来管理内存，链表通过一个evbuffer管理，以此来实现zero copy。
 ![evbuffer](https://github.com/Yuz7/EasyWebServer/blob/master/pic/buffer.webp)
 
-## 测试
+## 测试 //TODO
 
