@@ -1,5 +1,4 @@
 // @Author Yuz
-#pragma once
 #include "CountDownLatch.h"
 
 CountDownLatch::CountDownLatch(int count):

@@ -1,8 +1,6 @@
 // @Author Yuz
 #pragma once
 
-namespace easyserver
-{
 
 class noncopyable
 {
@@ -15,4 +13,4 @@ class noncopyable
     ~noncopyable() = default;
 };
 
-}
+

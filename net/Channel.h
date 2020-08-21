@@ -1,21 +1,18 @@
 //@Author Yuz
 
 #pragma once
-#include "EventLoop.h"
-#include <fuctional>
-#include <sys/epool/h>
+#include "eventloop.h"
+#include <functional>
+#include <sys/epoll.h>
 
-namespace easyserver{
-
-namespace net{
 class EventLoop;
 
 class Channel: noncopyable{
   public:
-    typedef std::fuction<void()> EventCallback;
+    typedef std::function<void()> EventCallback;
 
     Channel(EventLoop*, int fd);
-
+    ~Channel();
     void handleEvent();
     void setReadCallback(const EventCallback& cb)
     { readCallback_ = cb; }
@@ -25,8 +22,10 @@ class Channel: noncopyable{
     { errorCallback_ = cb; }
 
     int fd() const { return fd_; }
-    int events const { return events_; }
+    int events() const { return events_; }
     void set_revents(int revt) { revents_ = revt;}
+
+    int &getEvents() {return events_;}
 
     bool isNoneEvent() const { return events_ == kNoneEvent; }
 
@@ -40,6 +39,7 @@ class Channel: noncopyable{
     int index() { return index_; }
     void set_index(int idx) { index_ = idx; }
 
+    void remove();
   private:
     void update();
 
@@ -58,10 +58,4 @@ class Channel: noncopyable{
     EventCallback errorCallback_;
 
 
-}
-}
-
-
-
-
-}
+};

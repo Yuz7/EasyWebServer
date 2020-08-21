@@ -9,7 +9,7 @@ class Server
 {
     public:
         Server(EventLoop *loop, int threadnum, int port);
-        ~Server();
+        ~Server() = default;
 
         EventLoop *getLoop() const { return loop_; }
         void start();
@@ -17,11 +17,11 @@ class Server
 
     private:
         EventLoop *loop_;
-        int threadnum;
+        int threadNum_;
         std::unique_ptr<EventLoopThreadPool> threadpool_;
         int port_;
         int listenfd_;
         bool started_;
         std::unique_ptr<Channel> acceptor_;
         static const int MAXFDS = 100000;
-}
+};

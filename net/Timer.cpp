@@ -5,7 +5,7 @@
 #include <queue>
 
 TimerNode::TimerNode(std::shared_ptr<TcpConn> reqConn,int timeout)
-    : deleted_(false), TcpConnptr(reqConn) {
+    : deleted_(false), TcpConnPtr(reqConn) {
     struct timeval now;
     gettimeofday(&now,NULL);
     expiredTime_ =
@@ -16,7 +16,7 @@ TimerNode::~TimerNode() {
     if(TcpConnPtr) TcpConnPtr->handleClose();
 }
 
-TimerNode::TimerNode(TimerNode &rhs) : TcpConnPtr(rhs.TcpConnPtr),expiredTime_(0) {}
+TimerNode::TimerNode(TimerNode &rhs) : expiredTime_(0),TcpConnPtr(rhs.TcpConnPtr) {}
 
 void TimerNode::update(int timeout) {
     struct timeval now;

@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <memory>
 #include <iostream>
-
+#include "CurrentThread.h"
 namespace CurrentThread
 {
 __thread int t_cacheTid = 0;
@@ -27,7 +27,7 @@ void CurrentThread::cacheTid()
     {
         t_cachedTid = gettid();
         t_tidStringLength =
-            snprintf( t_tidString, sizeof(t_tidString) , "%5d ", t_cachetid );
+            snprintf( t_tidString, sizeof(t_tidString) , "%5d ", t_cacheTid );
     }
 }
 
@@ -35,11 +35,11 @@ struct ThreadData
 {
     typedef Thread::ThreadFunc ThreadFunc;
     ThreadFunc func_;
-    string name_;
+    std::string name_;
     pid_t* tid_;
     CountDownLatch* latch_;
 
-    ThreadData(const ThreadFunc& func, const string& name, pid_t* tid,
+    ThreadData(const ThreadFunc& func, const std::string& name, pid_t* tid,
                 CountDownLatch* latch):
                 func_(func),
                 name_(name),
@@ -69,7 +69,7 @@ void* startThread(void* obj)
     return NULL;
 }
 
-Thread::Thread(const ThreadFunc& func, const string& n):
+Thread::Thread(const ThreadFunc& func, const std::string& n):
         started_(false),
         joined_(false),
         pthreadId_(0),
@@ -86,7 +86,7 @@ Thread::~Thread()
     if( started_ && !joined_ ) pthread_detach(pthreadId_);
 }
 
-void Thread::setDeafaultName()
+void Thread::setDefaultName()
 {
     if (name_.empty())
     {
@@ -113,7 +113,7 @@ void Thread::start()
     }
 }
 
-void Thread::join()
+int Thread::join()
 {
     assert(started_);
     assert(!joined_);

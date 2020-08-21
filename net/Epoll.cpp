@@ -5,9 +5,8 @@
 #include "Channel.h"
 #include <sys/epoll.h>
 #include <errno.h>
-
-using namespace easyserver;
-using namespace easyserver::net;
+#include <unistd.h>
+#include <string.h>
 
 namespace{
 const int kNew = -1;
@@ -15,7 +14,7 @@ const int kAdded = 1;
 const int kDeleted = 2;
 }
 
-Epoll::Epoll(EventLoop* loop):
+Epoll::Epoll():
     epollfd_(::epoll_create1(EPOLL_CLOEXEC)),
     events_(kInitEventListSize)
 {
@@ -27,16 +26,16 @@ Epoll::Epoll(EventLoop* loop):
 
 Epoll::~Epoll()
 {
-    ::close(epollfd_);
+    close(epollfd_);
 }
 
 void Epoll::poll(int timeoutms,ChannelList* activechannels)
 {
-    int numEvents = epoll_wait(epolfd_, &*events_.begin(), events_.size(), timeoutms);
+    int numEvents = epoll_wait(epollfd_, &*events_.begin(), events_.size(), timeoutms);
     if(numEvents > 0)
     {
         fillActiveChannels(numEvents, activechannels);
-        if(implicit_cast<size_t>(numEvents) == events_.size())
+        if(static_cast<size_t>(numEvents) == events_.size())
         {
             events_.resize(events_.size() * 2);
         }
@@ -53,7 +52,7 @@ void Epoll::poll(int timeoutms,ChannelList* activechannels)
 
 void Epoll::fillActiveChannels(int numEvents, ChannelList* activechannels) const
 {
-    assert(implicit_cast<size_t>(numEvents) <= events_.size());
+    assert(static_cast<size_t>(numEvents) <= events_.size());
     for(int i = 0; i < numEvents; ++i)
     {
         Channel* channel = static_cast<Channel*>(events_[i].data.ptr);
@@ -76,7 +75,7 @@ void Epoll::updateChannel(Channel* channel)
         }
         else //kDeleted
         {
-            assert(channels_find(fd) != channels_.end());
+            assert(channels_.find(fd) != channels_.end());
             assert(channels_[fd] == channel);
         }
 
@@ -104,7 +103,7 @@ void Epoll::updateChannel(Channel* channel)
 void Epoll::update(int operation, Channel* channel)
 {
     struct epoll_event event;
-    memZero(&event, sizeof(event));
+    memset(&event,0, sizeof(event));
     event.events = channel->events();
     event.data.ptr = channel;
     int fd = channel->fd();

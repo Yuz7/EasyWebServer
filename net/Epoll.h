@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 #include "Channel.h"
+#include <map>
+#include "eventloop.h"
 
 struct epoll_event;
 
@@ -15,8 +17,11 @@ class Epoll{
         void epoll_add();
         void epoll_mod();
         void epoll_del();
-
+ 
         void poll(int timeoutms, ChannelList* activeChannels);
+
+	void updateChannel(Channel* channel);
+	void removeChannel(Channel* channel);
     private:
         static const int kInitEventListSize = 16;
 
@@ -31,4 +36,4 @@ class Epoll{
 
         typedef std::map<int, Channel*> ChannelMap;
         ChannelMap channels_;
-}
+};

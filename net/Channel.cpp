@@ -1,11 +1,9 @@
 //@Author Yuz
 
-#pragma once
 #include "Channel.h"
 #include "eventloop.h"
 
 
-namespace net{
 const int Channel::kNoneEvent = 0;
 const int Channel::kReadEvent = EPOLLIN |  EPOLLET;
 const int Channel::kWriteEvent = EPOLLOUT;
@@ -21,11 +19,11 @@ Channel::Channel(EventLoop* loop, int fd__):
 
 Channel::~Channel()
 {
-    assert(!eventHandling_);
+   /* assert(!eventHandling_);
     if(loop_isInLoopThread())
     {
         //
-    }
+    }*/
 
 }
 
@@ -56,14 +54,14 @@ void Channel::handleEvent()
     }
     if(revents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
     {
-        readCallback();
+        readCallback_();
     }
     if(revents_ & EPOLLOUT)
     {
-        writeCallback();
+        writeCallback_();
     }
 }
-}
+
 
 
 

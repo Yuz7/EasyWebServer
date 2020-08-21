@@ -6,6 +6,9 @@
 #include <map>
 #include <memory>
 #include <unistd.h>
+#include "Timer.h"
+
+class TimerNode;
 
 enum URIState
 {
@@ -55,25 +58,27 @@ class TcpConn
 {
     public:
         TcpConn(EventLoop*loop,int fd);
-        ~TcpConn();
+        ~TcpConn() = default;
 
         void reset();
         void seperateTimer();
         void linkTimer(std::shared_ptr<TimerNode> ctimer) { timer_ = ctimer; }
 
-        void connEstabilsh();
+        void ConnEstablish();
         void handleClose();
 
     private:
         EventLoop* loop_;
         int fd_;
-        bool error_;
+        std::string inBuffer_;
+	std::string outBuffer_;
+	bool error_;
         std::shared_ptr<Channel> channel_;
         ConnState connState_;
 
         HTTPMethod method_;
         HTTPVersion httpversion_;
-        ProcesssState procstate_;
+        ProcessState procstate_;
         ParseState parsestate_;
 
         std::string fileName_;
@@ -89,5 +94,5 @@ class TcpConn
         void handleError(int fd, int err_num, std::string short_msg);
         URIState parseURI();
         HeaderState parseHeaders();
-        AalysisState analysisRequest();
+        AnalysisState analysisRequest();
 };

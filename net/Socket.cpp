@@ -1,7 +1,7 @@
 //@Author Yuz
 //
 #include "Socket.h"
-#include <sys/sockets.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <unistd.h>
@@ -155,7 +155,7 @@ int setNonBlocking(int fd)
 void setSocketNodelay(int fd)
 {
     int enable = 1;
-    setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (VOID *)&enable, sizeof(enable));
+    setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (void *)&enable, sizeof(enable));
 }
 
 void setSocketNoLinger(int fd)
@@ -174,7 +174,7 @@ int socket_bind_listen(int port)
     if((listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) return -1;
 
     int optval = 1;
-    if( setsockopt(listenfd, SOL_SOCKET, SOREUSEADDR, &optval, sizeof(optval)) == -1)
+    if( setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
     {
         close(listenfd);
         return -1;

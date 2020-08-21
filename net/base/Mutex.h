@@ -32,4 +32,4 @@ class MutexLockGuard : noncopyable
 
     private:
         MutexLock &mutex;
-}
+};

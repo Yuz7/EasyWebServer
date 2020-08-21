@@ -3,8 +3,8 @@
 #include <functional>
 
 EventLoopThread::EventLoopThread():
-    loop_(NULL);
-    exiting_(false);
+    loop_(NULL),
+    exiting_(false),
     thread_(std::bind(&EventLoopThread::threadFunc,this),"EventLoopThread"),
     mutex_(),
     cond_(mutex_)

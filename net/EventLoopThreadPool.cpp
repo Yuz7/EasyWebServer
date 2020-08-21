@@ -17,8 +17,8 @@ void EventLoopThreadPool::start()
     started_ = true;
     for( int i = 0; i < numThreads_; ++i )
     {
-        std::unique_ptr<EventLoopThread> t(new EventLoopThread());
-        threds_.push_back(t);
+        std::shared_ptr<EventLoopThread> t(new EventLoopThread());
+        threads_.push_back(t);
         loops_.push_back(t->startLoop());
     }
 }
@@ -27,8 +27,8 @@ EventLoop *EventLoopThreadPool::getNextLoop()
 {
     baseLoop_->assertInLoopThread();
     assert(started_);
-    EventLoop *loop = baseloop_;
-    if(!loops_empty())
+    EventLoop *loop = baseLoop_;
+    if(!loops_.empty())
     {
         loop = loops_[next_];
         next_ = (next_ + 1) % numThreads_;

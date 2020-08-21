@@ -1,6 +1,6 @@
 // @Author
 #pragma once
-#include "EventLoop.h"
+#include "eventloop.h"
 #include "base/Condition.h"
 #include "base/Mutex.h"
 #include "base/Thread.h"
@@ -11,7 +11,7 @@ class EventLoopThread : noncopyable
     public:
         EventLoopThread();
         ~EventLoopThread();
-        EventLoop* startloop();
+        EventLoop* startLoop();
 
     private:
         void threadFunc();

@@ -2,20 +2,16 @@
 
 #include "eventloop.h"
 #include "Channel.h"
-#include "EPoll.h"
-#include "EasyWebServer/base/CurrentThread.h"
+#include "Epoll.h"
+#include "base/CurrentThread.h"
 
 #include <algorithm>
 
 #include <signal.h>
 #include <sys/eventfd.h>
-#include <unist.h>
+#include <unistd.h>
+#include "Socket.h"
 
-using namespace easyserver;
-using namespace easyserver::net;
-
-namespace
-{
 __thread EventLoop* t_loopInThisThread = 0;
 
 const int kPollTimeMs = 10000;
@@ -30,28 +26,29 @@ int createEventfd()
   }
   return evtfd;
 }
-}
+
 
 EventLoop::EventLoop():
-            looping_(false),
+	threadId_(CurrentThread::tid()),
 	    	quit_(true),
-	    	threadID_(CurrentThread::ID()){},
-            wakeupFd(createEventfd*()),
-            wakeupChannel_(new Channel(this,wakeupFd_)),
-            currentActiveChannel_(NULL),
+            looping_(false),
             eventHandling_(false),
-            iteration_(0)
+            Epoller_(new Epoll()),
+	    iteration_(0),
+            currentActiveChannel_(NULL),
+            wakeupFd_(createEventfd()),
+            wakeupChannel_(new Channel(this,wakeupFd_))
 {
     //log eventloop created;
-    if(t_loopInthisThread)
+    if(t_loopInThisThread)
     {
         //log eventloop existed;
     }
     else
     {
-        t_loopInthisThread = this;
+        t_loopInThisThread = this;
     }
-    wakeupChannel_->setReadCallback(std::bind(&Eventloop::handleRead(),this));
+    wakeupChannel_->setReadCallback(std::bind(&EventLoop::handleRead,this));
     wakeupChannel_->enableReading();
 }
 
@@ -61,7 +58,7 @@ EventLoop::~EventLoop()
     //wakeupChannel_->disableAll();
     //wakeupChannel_->remove();
     ::close(wakeupFd_);
-    t_loopInthisThread = NULL;
+    t_loopInThisThread = NULL;
 }
 
 void EventLoop::loop()
@@ -72,12 +69,12 @@ void EventLoop::loop()
     quit_ = false;
     //log start looping
 
-    while(!quit){
+    while(!quit_){
         activeChannels_.clear();
         ++iteration_;
         eventHandling_ = true;
         Epoller_->poll(kPollTimeMs, &activeChannels_);
-        for(Channel* channel : activechannels_)
+        for(Channel* channel : activeChannels_)
         {
             currentActiveChannel_ = channel;
             currentActiveChannel_->handleEvent();
@@ -95,9 +92,14 @@ void EventLoop::updateChannel(Channel* channel)
     Epoller_->updateChannel(channel);
 }
 
+void EventLoop::removeChannel(Channel* channel)
+{
+    Epoller_->removeChannel(channel);
+}
+
 void EventLoop::wakeup()
 {
-    uint64_t one = 1;
+    int one = 1;
     ssize_t n = writen(wakeupFd_, (char*)(&one), sizeof(one));
     if(n != sizeof(one))
     {
@@ -107,7 +109,7 @@ void EventLoop::wakeup()
 
 void EventLoop::runInLoop(Functor&& cb)
 {
-    if(isInLoopThread)
+    if(isInLoopThread())
         cb();
     else
         queueInLoop(std::move(cb));
@@ -117,8 +119,8 @@ void EventLoop::queueInLoop(Functor&& cb)
 {
     {
         MutexLockGuard lock(mutex_);
-        pendingFunctors_emplace_back(std::move(cb));
+        pendingFunctors_.emplace_back(std::move(cb));
     }
 
-    if( !isInLoopThread() || callingpendingFunctors_) wakeup();
+    if( !isInLoopThread() || callingPendingFunctors_) wakeup();
 }

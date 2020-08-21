@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <assert.h>
 #include "TcpConn.h"
+#include <string.h>
 
 Server::Server(EventLoop *loop, int threadNum, int port):
         loop_(loop),
@@ -14,8 +15,8 @@ Server::Server(EventLoop *loop, int threadNum, int port):
         threadpool_(new EventLoopThreadPool(loop_, threadNum)),
         port_(port),
         listenfd_(socket_bind_listen(port_)),
-        acceptor_(new Channel(loop_, listenfd_)),
-        started_(false)
+        started_(false),
+        acceptor_(new Channel(loop_, listenfd_))
 {
     acceptor_->setReadCallback(std::bind(&Server::handleRead,this));
     acceptor_->enableReading();
@@ -33,26 +34,26 @@ void Server::handleRead()
     struct sockaddr_in client_addr;
     memset(&client_addr, 0, sizeof(struct sockaddr_in));
     socklen_t client_addr_len = sizeof(client_addr);
-    int acceptfd = 0;
+    int accept_fd = 0;
     while((accept_fd = accept(listenfd_,(struct sockaddr *)&client_addr,&client_addr_len))>0)
     {
         EventLoop *ioloop = threadpool_->getNextLoop();
         if (accept_fd >= MAXFDS)
         {
-            close(acceptfd);
+            close(accept_fd);
             continue;
         }
 
-        if(setNonBlocking(acceptfd) < 0)
+        if(setNonBlocking(accept_fd) < 0)
         {
             // log
             return;
         }
 
-        setNodelay(acceptfd);
+        setSocketNodelay(accept_fd);
 
         std::shared_ptr<TcpConn> TcpConnPtr(new TcpConn(ioloop, accept_fd));
-        ioloop->runInLoop(std::bind(&TcpConn::ConnEstablish,TcpConnPtr))
+        ioloop->runInLoop(std::bind(&TcpConn::ConnEstablish,TcpConnPtr));
     }
     acceptor_->enableReading();
 }

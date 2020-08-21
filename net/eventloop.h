@@ -3,30 +3,34 @@
 #include <vector>
 #include <functional>
 #include <atomic>
-#include "easeyserver/base/CurrentThread.h"
-
-namespace net
-{
+#include "base/CurrentThread.h"
+#include "base/Mutex.h"
+#include <assert.h>
+#include <memory>
 
 class Channel;
-class Epoller;
+class Epoll;
 
-class EventLoop:nocopyable{
+typedef std::vector<Channel*> ChannelList;
+    
+class EventLoop{
   public:
-    typedef std::fuction<void()> Functor;
+    typedef std::function<void()> Functor;
 
     EventLoop();
-    ~EventLoop()
+    ~EventLoop();
 
     void loop();
     void quit();
 
-    bool isInLoopThread() const { return threadId_ == CurrentThred::tid();}
-    void assertInLoopThread() { assert(isInLoopThread())};
+    bool isInLoopThread() const { return threadId_ == CurrentThread::tid();}
+    void assertInLoopThread() { assert(isInLoopThread()); }
 
     void runInLoop(Functor&& cb);
     void queueInLoop(Functor&& cb);
 
+    void updateChannel(Channel* channel);
+    void removeChannel(Channel* channel);
   private:
     const pid_t threadId_;
     std::atomic<bool> quit_;
@@ -35,8 +39,6 @@ class EventLoop:nocopyable{
     mutable MutexLock mutex_;
 
     std::unique_ptr<Epoll> Epoller_;
-
-    typedef std::vector<Channel*> ChannelList;
 
     void handleRead();
 
@@ -50,6 +52,4 @@ class EventLoop:nocopyable{
     std::unique_ptr<Channel> wakeupChannel_;
 
     void wakeup();
-}
-}
-
+};

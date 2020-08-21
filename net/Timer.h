@@ -4,9 +4,9 @@
 #include <deque>
 #include <queue>
 #include <memory>
-#include "TcpConn.h"
-#include "base/MutexLock.h"
+#include "base/Mutex.h"
 #include "base/noncopyable.h"
+#include "TcpConn.h"
 
 class TcpConn;
 
@@ -25,7 +25,7 @@ class TimerNode{
     private:
         bool deleted_;
         size_t expiredTime_;
-        std:shared_ptr<TcpConn> TcpConnPtr;
+        std::shared_ptr<TcpConn> TcpConnPtr;
 };
 
 struct TimerCmp{
@@ -44,6 +44,6 @@ class TimerManager {
 
     private:
         typedef std::shared_ptr<TimerNode> TimerNodePtr;
-        std::priority_queue<TimerNodePtr, std::deque<SPTimerNode>, TimerCmp>
+        std::priority_queue<TimerNodePtr, std::deque<TimerNodePtr>, TimerCmp>
             TimerNodeQ;
 };

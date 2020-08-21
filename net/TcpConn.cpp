@@ -1,7 +1,6 @@
 // @Author Yuz
 #include "TcpConn.h"
 #include "Channel.h"
-#include "EventLoop.h"
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -31,7 +30,7 @@ TcpConn::TcpConn(EventLoop *loop, int fd):
 void TcpConn::ConnEstablish()
 {
     loop_->assertInLoopThread();
-    assert(state_ == kConnecting);
+    assert(connState_ == kConnecting);
     setState(kConnected);
 
     channel_->enableReading();
@@ -53,8 +52,8 @@ void TcpConn::reset(){
 }
 
 void TcpConn::seperateTimer() {
-    if(timer.lock) {
-        shared_ptr<TimerNode> crtimer(timer_.lock());
+    if(timer_.lock()) {
+        std::shared_ptr<TimerNode> crtimer(timer_.lock());
         crtimer->clearReq();
         timer_.reset();
     }
@@ -62,11 +61,13 @@ void TcpConn::seperateTimer() {
 
 void TcpConn::handleRead()
 {
-    __uint32_t &events_ = channel_->getEvents();
-    //int read_num = readfd(fd_,); TODO
-    if(connState_ == kDisConnection)
+    int &events_ = channel_->getEvents();
+    do{
+    bool zero = false;
+    int read_num = readn(fd_,inBuffer_,zero);
+    if(connState_ == kDisConnected)
     {
-        //
+        inBuffer_.clear();
         break;
     }
 
@@ -85,7 +86,7 @@ void TcpConn::handleRead()
     if(procstate_ == STATE_PARSE_URI)
     {
         URIState flag = this->parseURI();
-        if(flag = PARSE_URI_ERROR) break;
+        if(flag == PARSE_URI_ERROR) break;
         else if(flag == PARSE_URI_ERROR)
         {
             perror("2");
@@ -129,6 +130,7 @@ void TcpConn::handleRead()
             break;
         }
     }
+    }while(false);
     if(!error_) {
         if(outBuffer_.size() > 0){
             handleWrite();
@@ -148,8 +150,8 @@ void TcpConn::handleWrite()
 {
     if(!error_&&connState_!=kDisConnected)
     {
-        __uint32_t &events_ = channel_->getEvents();
-        if(writen(fd_,)<0)
+        int &events_ = channel_->getEvents();
+        if(writen(fd_,outBuffer_)<0)
         {
             perror("written");
             events_ = 0;
@@ -161,15 +163,15 @@ void TcpConn::handleWrite()
 
 URIState TcpConn::parseURI()
 {
-    string &str = inBuffer_;
-    string cop = str;
+    std::string &str = inBuffer_;
+    std::string cop = str;
     size_t pos = str.find('\r', nowReadPos_);
     if(pos < 0)
     {
-        return PARSE_URI_AGAGIN;
+        return PARSE_URI_AGAIN;
     }
 
-    string request_line = str.substr(0, pos);
+    std::string request_line = str.substr(0, pos);
     if(str.size() > pos + 1)
         str = str.substr(pos+1);
     else
@@ -219,7 +221,7 @@ URIState TcpConn::parseURI()
         if(request_line.size() - pos <= 3)
             return PARSE_URI_ERROR;
         else {
-            string ver = request_line.substr(pos + 1, 3);
+            std::string ver = request_line.substr(pos + 1, 3);
             if(ver == "1.0")
                 httpversion_ = HTTP1_0;
             else if(ver == "1.1")
@@ -232,7 +234,7 @@ URIState TcpConn::parseURI()
 }
 
 HeaderState TcpConn::parseHeaders(){
-    string &str = inBuffer_;
+    std::string &str = inBuffer_;
     int key_start = -1, key_end = -1, value_start = -1, value_end = -1;
     int now_read_line_begin = 0;
     bool notFinish = true;
@@ -272,16 +274,16 @@ HeaderState TcpConn::parseHeaders(){
                 if(str[i] == '\r'){
                     parsestate_ = H_CR;
                     value_end = i;
-                    if(value_end - value_strat <= 0) return PARSE_HEADER_ERROR;
+                    if(value_end - value_start <= 0) return PARSE_HEADER_ERROR;
                 }else if(i - value_start > 255)
-                    return PARSE_HEDER_ERROR;
+                    return PARSE_HEADER_ERROR;
                 break;
             }
             case H_CR: {
                 if(str[i] == '\n'){
                     parsestate_ = H_LF;
-                    string key(str.begin()+key_start, str.begin()+key_end);
-                    string value(str.begin()+value_start,str.begin()+value_end);
+                    std::string key(str.begin()+key_start, str.begin()+key_end);
+                    std::string value(str.begin()+value_start,str.begin()+value_end);
                     headers_[key] = value;
                     now_read_line_begin = i;
                 }else
@@ -311,13 +313,14 @@ HeaderState TcpConn::parseHeaders(){
                 break;
             }
         }
+	}
         if(parsestate_ == H_END_LF){
             str = str.substr(i);
             return PARSE_HEADER_SUCCESS;
         }
         str = str.substr(now_read_line_begin);
-        return PARSE_HEADER_AGAGIN;
-    }
+        return PARSE_HEADER_AGAIN;
+    
 }
 
 char favicon[555] = {
